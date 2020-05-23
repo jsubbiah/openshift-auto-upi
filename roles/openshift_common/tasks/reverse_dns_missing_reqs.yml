@@ -1,0 +1,30 @@
+- name: Create directories
+  file:
+    path: '{{ helper.install_conf_dir }}/{{ virtual_machine_names[item.hostname] }}'
+    state: directory
+  with_items: '{{ openshift_cluster_hosts }}'
+
+- name: Template the ifconfigs
+  template:
+    src: files/common/ifcfg-ens192
+    dest: "{{ helper.install_conf_dir }}/{{ virtual_machine_names[item.hostname] }}"
+  with_items: '{{ openshift_cluster_hosts }}'
+
+- name: Template the script
+  template:
+    src: files/common/append-xyz.sh
+    dest: "{{ helper.install_conf_dir }}/{{ virtual_machine_names[item.hostname] }}"
+    mode: '0700'
+  with_items: '{{ openshift_cluster_hosts }}'
+
+- name: Template resolve conf
+  template:
+    src: files/common/resolv.conf
+    dest: "{{ helper.install_conf_dir }}/{{ virtual_machine_names[item.hostname] }}"
+  with_items: '{{ openshift_cluster_hosts }}'
+
+- name: Execute the script
+  shell:
+    cmd: /bin/sh append-xyz.sh
+    chdir: "{{ helper.install_conf_dir }}/{{ virtual_machine_names[item.hostname] }}/"
+  with_items: '{{ openshift_cluster_hosts }}'
