@@ -4,12 +4,8 @@ Preparing infrastructure for OpenShift 4 installation by hand is a rather tediou
 
 *openshift-auto-upi* is a separate tool, and is not in any way part of the OpenShift product. It enhances the *openshift-installer* by including automation for the following:
 
-*openshift-auto-upi* comes with Ansible roles to provision OpenShift cluster hosts on the following target platforms:
+*openshift-auto-upi* comes with Ansible roles to provision OpenShift cluster hosts on the following * [vSphere] target platforms:
 
-* [Bare Metal](roles/openshift_baremetal)
-* [Libvirt](roles/openshift_libvirt_fwcfg)
-* [oVirt (RHEV)](roles/openshift_ovirt)
-* [vSphere](roles/openshift_vsphere)
 
 *openshift-auto-upi* comes with Ansible roles to provision and configure:
 
