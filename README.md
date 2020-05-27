@@ -4,51 +4,25 @@ Preparing infrastructure for OpenShift 4 installation by hand is a rather tediou
 
 *openshift-auto-upi* is a separate tool, and is not in any way part of the OpenShift product. It enhances the *openshift-installer* by including automation for the following:
 
-*openshift-auto-upi* comes with Ansible roles to provision OpenShift cluster hosts on the following * [vSphere] target platforms:
+*openshift-auto-upi* comes with Ansible roles to provision OpenShift cluster hosts on vSphere platforms.
 
-
-*openshift-auto-upi* comes with Ansible roles to provision and configure:
-
-* [DHCP Server](roles/dhcp_server)
-* [DNS Server](roles/dns_server)
-* [PXE Server](roles/pxe_server)
-* [Web Server](roles/web_server)
-* [Load Balancer](roles/loadbalancer)
-* [Mirror Registry](roles/mirror_registry)
-
-Note that the infrastructure from the above list provisioned using *openshift-auto-upi* is NOT meant for production use. It is meant to be a temporary fill in for your missing production-grade infrastructure. Using *openshift-auto-upi* to provision any of the infrastructure from the above list is optional.
 
 # Deployment Overview
 
 ![Deployment Diagram](docs/openshift_auto_upi.svg "Deployment Diagram")
 
-* **Helper host** is a (virtual) machine that you must provide. It is a helper machine from which you will run *openshift-auto-upi* Ansible scripts. Any provisioned infrastructure (DHCP, DNS server, ...) will also be installed on the Helper host by default.
-  * Helper host requires access to the Internet.
+* **Helper host** is a (virtual) machine that you must provide. It is a helper machine from which you will run *openshift-auto-upi* Ansible scripts. 
   * It is stronly discouraged to use *openshift-auto-upi* to provision infrastructure components on a bastion host. Services provisioned by *openshift-auto-upi* are not meant to be exposed to the public Internet.
-  * If your goal is to deploy OpenShift on your laptop, you can run the *openshift-auto-upi* directly on your laptop and use the local Libvirt as your target platform.
+  
 * **OpenShift hosts** will be provisioned for you by *openshift-auto-upi* unless your target platform is bare metal.
 
 ## Networking
 
-*openshift-auto-upi* assumes that OpenShift hosts are assigned fixed IP addresses. This is accomplished by pairing the hosts MAC addresses with IP addresses in the DHCP server configuration. DHCP server then always assigns the same IP address to a specific host.
-
-Note that in order to use DHCP and/or PXE server installed on the Helper host, the Helper host and all of the OpenShift hosts have to be provisioned on the same layer 2 network. In the opposite case, it is sufficient to have a working IP route between the Helper host and the OpenShift hosts.
-
-If the DNS server is managed by *openshift-auto-upi*, a DNS name will be created for each OpenShift host. These DNS names follow the scheme:
-```
-<hostname>.<cluster_name>.<base_domain>
-```
-Note that these names are created only for your convenience. *openshift-auto-upi* doesn't rely on their existence as they are not required for installing OpenShift.
-
 ### Using Static IPs
 
-If you prefer configuring your OpenShift hosts using static IPs as opposed to leveraging the default DHCP provisioning, *openshift-auto-upi* allows you to do that. While you are configuring *openshift-auto-upi* (detailed information in the following sections), perform these steps:
+If you prefer configuring your OpenShift hosts using static IPs as opposed to leveraging the DHCP provisioning, *openshift-auto-upi* allows you to do that. While you are configuring *openshift-auto-upi* (detailed information in the following sections), perform these steps:
 
-After cloning the *openshift-auto-upi* git repository, checkout the `static_ips_2` branch (instead of a release_tag):
-
-```
-$ git checkout static_ips_2
-```
+After cloning the *openshift-auto-upi* git repository,
 
 Add your network configuration (gateway, netmask, name servers) to the *boot_iso* section of the *openshift_install_config.yml* file:
 
@@ -60,45 +34,11 @@ $ vi inventory/group_vars/all/openshift_install_config.yml
 
 You are all set! *openshift-auto-upi* will configure your OpenShift nodes using static IPs.
 
-> :exclamation: Note that Static IPs is an experimental feature currently implemented only for oVirt and vSphere target platforms.
-
-If you tried Static IPs out, I would be happy if you leave your [feedback](https://github.com/noseka1/openshift-auto-upi/pull/1).
-
 For further information on the Static IPs feature, you can refer to [OpenShift UPI using static IPs](https://www.openshift.com/blog/openshift-upi-using-static-ips).
 
 ## Platform-Specific Documentation
 
-[Installing OpenShift on Libvirt](docs/openshift_libvirt.md)
 
-## Deployment Playbooks
-
-The table below depicts the *openshift-auto-upi* Ansible playbooks that you need to execute in order to deploy OpenShift on select target platform. You want to execute the Ansible playbooks in the order from top to bottom.
-
-| | Bare metal | Libvirt FwCfg | Libvirt PXE | oVirt | vSphere |
-|-|:-:|:-:|:-:|:-:|:-:|
-| **mirror_registry** | optional | optional | optional | optional | optional |
-| **clients** | required | required | required | required | required |
-| **dhcp_server** | optional | optional | optional | optional | optional | optional |
-| **dns_server** | optional | optional | optional | optional | optional | optional |
-| **pxe_server** | required | - | required | - | - | - |
-| **web_server** | required | - | required | - | - | - |
-| **loadbalancer** | optional | optional | optional | optional | optional |
-| **dns_client** | optional | optional | optional | optional | optional |
-
-Following sections describe the installation process in more detail.
- 
-# Setting Up Helper Host
-
-There are two options to create a Helper host:
-
-* Create a Helper host virtual machine. Minimum recommended Helper host machine size is 1 vCPU, 4 GB RAM, and 10 GB disk space. You have to install one of the supported operating systems on this machine.
-* If you run one of the supported operating system on an existing machine, you can use that machine as your Helper host.
-
-Supported operating systems for the Helper host are:
-
-* Red Hat Enterprise Linux 7
-* Red Hat Enterprise Linux 8
-* Fedora release >= 31
 
 Before continuing with the next steps, make sure that you applied the [OS-specific configuration instructions](docs/os_specific_config.md).
 
@@ -109,8 +49,7 @@ $ yum install ansible
 Clone the *openshift-auto-upi* repo to your Helper host and check out a tagged release. I recommend that you use a tagged release which receives more testing than master:
 
 ```
-$ git clone https://github.com/noseka1/openshift-auto-upi.git
-$ git checkout <release_tag>
+$ git clone https://github.com/jsubbiah/openshift-auto-upi.git
 $ cd openshift-auto-upi
 ```
 
@@ -242,71 +181,7 @@ $ ansible-playbook dns_client.yml
 
 # Installing OpenShift
 
-## Installing OpenShift on Bare Metal
 
-Create your `install-config.yaml` file:
-
-```
-$ cp files/common/install-config.yaml.sample files/common/install-config.yaml
-$ vi files/common/install-config.yaml
-```
-
-Kick off the OpenShift installation by issuing the command:
-
-```
-$ ansible-playbook openshift_baremetal.yml
-```
-
-## Installing OpenShift on Libvirt
-
-Create custom *libvirt.yml* configuration:
-
-```
-$ cp inventory/group_vars/all/infra/libvirt.yml.sample inventory/group_vars/all/infra/libvirt.yml
-$ vi inventory/group_vars/all/infra/libvirt.yml
-```
-
-Create your `install-config.yaml` file:
-
-```
-$ cp files/common/install-config.yaml.sample files/common/install-config.yaml
-$ vi files/common/install-config.yaml
-```
-
-In order to install OpenShift using the Libvirt FwCfg method, kick off the installation by issuing the command:
-
-```
-$ ansible-playbook openshift_libvirt_fwcfg.yml
-```
-
-Alternatively, in order to install OpenShift using the Libvirt PXE method, kick off the installation by issuing the command:
-
-```
-$ ansible-playbook openshift_libvirt_pxe.yml
-```
-
-
-## Installing OpenShift on oVirt
-
-Create custom *ovirt.yml* configuration:
-
-```
-$ cp inventory/group_vars/all/infra/ovirt.yml.sample inventory/group_vars/all/infra/ovirt.yml
-$ vi inventory/group_vars/all/infra/ovirt.yml
-```
-
-Create your `install-config.yaml` file:
-
-```
-$ cp files/common/install-config.yaml.sample files/common/install-config.yaml
-$ vi files/common/install-config.yaml
-```
-
-Kick off the OpenShift installation by issuing the command:
-
-```
-$ ansible-playbook openshift_ovirt.yml
-```
 
 ## Installing OpenShift on vSphere
 
@@ -346,7 +221,7 @@ $ ansible-playbook loadbalancer.yml
 Re-run the platform-specific playbook to install the new cluster hosts:
 
 ```
-$ ansible-playbook openshift_<baremetal|libvirt_fwcfg|libvirt_pxe|ovirt|vsphere>.yml
+$ ansible-playbook openshift_vsphere.yml
 ```
 
 To allow the new nodes to join the cluster, you may need to sign their CSRs:
