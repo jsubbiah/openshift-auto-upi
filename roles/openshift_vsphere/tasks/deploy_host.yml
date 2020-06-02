@@ -1,6 +1,6 @@
 - name: Fetch ignition file for machine {{ virtual_machine_names[item.hostname] }}
   slurp:
-    src: '{{ helper.install_conf_dir }}/{{ item.ignition_config }}'
+    src: '{{ helper.install_conf_dir }}/{{ virtual_machine_names[item.hostname] }}/{{ item.ignition_config }}'
   register: vsphere_ignition
 
 - name: Create a virtual machine from the template
@@ -33,7 +33,7 @@
       hotadd_memory: False
     networks:
       - name: '{{ vsphere.network_name }}'
-        mac: '{{ item.macaddr }}'
+##        mac: '{{ item.macaddr }}'
     wait_for_ip_address: False
     validate_certs: False
     state: present

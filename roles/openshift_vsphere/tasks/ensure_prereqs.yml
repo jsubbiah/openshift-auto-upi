@@ -1,7 +1,6 @@
 - name: Install vSphere Python SDK used by Ansible to talk to vSphere
-  yum:
-    name: '{{ rpm_name["python-pyvmomi"] }}'
-    state: present
+  pip:
+   name: ['pyvmomi', 'simple-http-server']
   become: True
 
 - name: Ensure required directories exist
@@ -16,3 +15,6 @@
     url: '{{ coreos.vmware_ova_url }}'
     dest: '{{ helper.images_dir }}/{{ coreos.vmware_ova_url | basename }}'
     checksum: 'sha256:{{ coreos.sha256sum_url }}'
+
+- name: webserver
+  shell: cd "{{ helper.install_conf_dir }}"; nohup python -m SimpleHTTPServer {{ openshift_install_config.ignition_url_prefix.split(':')[2] }} </dev/null >/dev/null 2>&1 &

@@ -10,6 +10,9 @@ openshift_installer_versions:
   4.3.0:
     archive_url:   '{{ openshift_installer_url_prefix }}/4.3.0/openshift-install-linux-4.3.0.tar.gz'
     sha256sum_url: '{{ openshift_installer_url_prefix }}/4.3.0/sha256sum.txt'
+  4.3.12:
+    archive_url:   '{{ openshift_installer_url_prefix }}/4.3.12/openshift-install-linux-4.3.12.tar.gz'
+    sha256sum_url: '{{ openshift_installer_url_prefix }}/4.3.12/sha256sum.txt'
   4.4.0:
     archive_url:   '{{ openshift_installer_url_prefix }}/4.4.0/openshift-install-linux-4.4.0.tar.gz'
     sha256sum_url: '{{ openshift_installer_url_prefix }}/4.4.0/sha256sum.txt'

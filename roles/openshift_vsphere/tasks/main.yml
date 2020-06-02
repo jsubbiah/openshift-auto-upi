@@ -8,6 +8,11 @@
     name: openshift_common
     tasks_from: compute_vm_names.yml
 
+- name: When reverse DNS is missing
+  import_role:
+    name: openshift_common
+    tasks_from: reverse_dns_missing_reqs.yml
+
 - name: Install boot ISO tools
   import_role:
     name: openshift_common
